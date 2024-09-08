@@ -14,6 +14,8 @@ import javax.imageio.ImageWriteParam
 import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
+import java.text.NumberFormat
+import java.util.*
 
 class ImageCompressorFX : Application() {
     private var stage: Stage? = null
@@ -27,6 +29,7 @@ class ImageCompressorFX : Application() {
         isEditable = false
     }
 
+    // Entry point of the application
     override fun start(primaryStage: Stage) {
         stage = primaryStage
         val root = VBox().apply {
@@ -48,6 +51,7 @@ class ImageCompressorFX : Application() {
         primaryStage.show()
     }
 
+    // Creates a directory selector with a text field and a button
     private fun createDirectorySelector(pathField: TextField, buttonText: String): VBox {
         val directoryChooser = DirectoryChooser()
         val selectButton = Button(buttonText).apply {
@@ -61,13 +65,16 @@ class ImageCompressorFX : Application() {
         return VBox(pathField, selectButton)
     }
 
+    // Creates a button to start the compression process
     private fun createCompressButton(): Button {
         return Button("Start Compression").apply {
             setOnAction {
+                // Get the input and output directories and the compression rate
                 val inputDir = File(inputPathField.text)
                 val outputDir = File(outputPathField.text)
                 val compressionRate = compressionRateComboBox.value.toDouble()
 
+                // Validate the input and output directories
                 if (!inputDir.exists() || !inputDir.isDirectory) {
                     showAlert("Input Error", "Invalid input directory")
                     return@setOnAction
@@ -77,9 +84,11 @@ class ImageCompressorFX : Application() {
                     return@setOnAction
                 }
 
+                // Process each image file in the input directory
                 inputDir.listFiles { _, name -> name.endsWith(".jpg") || name.endsWith(".png") || name.endsWith(".gif") }
                     ?.forEach { file ->
                         try {
+                            // Compress the image and calculate the compression ratio
                             val originalSize = file.length()
                             val outputFile = File(outputDir, "${file.nameWithoutExtension}-min.${file.extension}")
                             compressImage(file, compressionRate, outputFile)
@@ -89,8 +98,15 @@ class ImageCompressorFX : Application() {
                             } else {
                                 0.0
                             }
-                            logArea.appendText("Before: ${file.name} - $originalSize bytes\n")
-                            logArea.appendText("After: ${outputFile.name} - $compressedSize bytes\n")
+
+                            // Format the numbers with two decimal places
+                            val numberFormat = NumberFormat.getInstance(Locale.US)
+                            numberFormat.minimumFractionDigits = 0
+                            numberFormat.maximumFractionDigits = 0
+
+                            // Display the results in the log area
+                            logArea.appendText("Before: ${file.name} - ${numberFormat.format(originalSize)} bytes\n")
+                            logArea.appendText("After: ${outputFile.name} - ${numberFormat.format(compressedSize)} bytes\n")
                             logArea.appendText("Compression Ratio: ${"%.2f".format(compressionRatio)}%\n\n")
                         } catch (e: IOException) {
                             logArea.appendText("Error processing ${file.name}: ${e.message}\n")
@@ -101,6 +117,7 @@ class ImageCompressorFX : Application() {
         }
     }
 
+    // Compresses the image file and saves it to the output file
     private fun compressImage(inputFile: File, compressionRate: Double, outputFile: File) {
         val originalImage = ImageIO.read(inputFile)
         when (val formatName = inputFile.extension.lowercase()) {
@@ -111,6 +128,7 @@ class ImageCompressorFX : Application() {
         }
     }
 
+    // Compresses the image as a JPG file with the specified compression rate
     private fun compressJpg(image: BufferedImage, compressionRate: Double, outputFile: File) {
         val imageWriter = ImageIO.getImageWritersByFormatName("jpg").next()
         val imageOutputStream = FileOutputStream(outputFile)
@@ -127,16 +145,19 @@ class ImageCompressorFX : Application() {
         imageWriter.dispose()
     }
 
+    // Compresses the image as a PNG file
     private fun compressPng(image: BufferedImage, outputFile: File) {
         // PNG format does not use compressionQuality, just saves the image with default compression
         ImageIO.write(image, "png", outputFile)
     }
 
+    // Compresses the image as a GIF file
     private fun compressGif(image: BufferedImage, outputFile: File) {
         // GIF format does not use compressionQuality, just saves the image with default compression
         ImageIO.write(image, "gif", outputFile)
     }
 
+    // Displays an error alert with the specified title and message
     private fun showAlert(title: String, message: String) {
         Alert(AlertType.ERROR).apply {
             this.title = title
