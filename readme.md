@@ -1,11 +1,11 @@
-# ImageShrinkFX
+# ImageCompressorFX
 
-ImageShrinkFX is a simple image shrinking tool that allows you to shrink images in a batch.
+ImageCompressorFX is a simple image compression tool that allows you to compress images in a batch.
 This tool is built with Kotlin and JavaFX.
 
 ## Features
 
-- Shrink images in a batch
+- Compress images in a batch
 - JPG, PNG and GIF formats are supported
 - You can select input and output directories
 - You can set the compression rate of the output images
