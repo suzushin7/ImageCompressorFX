@@ -69,6 +69,9 @@ class ImageCompressorFX : Application() {
     private fun createCompressButton(): Button {
         return Button("Start Compression").apply {
             setOnAction {
+                // Clear the log area
+                logArea.clear()
+
                 // Get the input and output directories and the compression rate
                 val inputDir = File(inputPathField.text)
                 val outputDir = File(outputPathField.text)
